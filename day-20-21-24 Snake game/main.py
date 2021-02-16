@@ -25,7 +25,7 @@ while game_on:
     screen.update()
     time.sleep(0.1)
     snake.move()
-
+    scoreboard.update_scoreboard()
 #Food Colition
     if snake.snake_head.distance(food) < 15:
         print("nomini")
@@ -34,13 +34,12 @@ while game_on:
         food.refresh()
 #Wall colition
     if snake.snake_head.xcor() > 280 or snake.snake_head.xcor() < -280 or snake.snake_head.ycor() > 280 or snake.snake_head.ycor() < -280:
-        scoreboard.game_over()
-        game_on = False
+        scoreboard.reset()
+        snake.reset_snake()
 #Snake collition
     for segment in snake.segments[1:]:
         if snake.snake_head.distance(segment) < 10:
-            scoreboard.game_over()
-            game_on = False
-
+            scoreboard.reset()
+            snake.reset_snake()
 
 screen.exitonclick()
