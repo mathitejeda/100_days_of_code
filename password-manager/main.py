@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import pyperclip
+import json
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
@@ -19,8 +20,6 @@ def generate_password():
     nr_symbols = random.randint(2, 4)
     nr_numbers = random.randint(2, 4)
 
-    password_list = []
-
     password_list = [random.choice(letters) for _ in range(nr_letters)]
 
     password_list += [random.choice(numbers) for _ in range(nr_numbers)]
@@ -30,25 +29,58 @@ def generate_password():
 
     password = "".join(password_list)
     pyperclip.copy(password)
-    password_entry.insert(0,password)
+    password_entry.insert(0, password)
+
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save_password():
     website = website_entry.get()
     email = email_entry.get()
     password = password_entry.get()
+
+    new_data = {
+        website: {
+            "email": email,
+            "password": password,
+        }
+    }
     if website == "" or email == "" or password == "":
         messagebox.showerror(title="error", message="You have to fill all the fields!!")
     else:
         save = messagebox.askokcancel(title="Save password",
                                       message=f"Check if this data is correct: \nwebsite: {website}\nemail: {email}\npassword: {password}\nIs this correct?")
         if save:
-            with open("data.txt", mode="a") as data:
-                data.write(f"{website} | {email} | {password}\n")
-                email_entry.delete(0, END)
+            try:
+                with open("data.json", mode="r") as data_file:
+                    data = json.load(data_file)
+            except FileNotFoundError:
+                with open("data.json", mode="w") as data_file:
+                    json.dump(new_data, data_file, indent=4)
+            else:
+                data.update(new_data)
+                with open("data.json", mode="w") as data_file:
+                    json.dump(data, data_file, indent=4)
+                    email_entry.delete(0, END)
+
+            finally:
                 password_entry.delete(0, END)
                 website_entry.delete(0, END)
-                messagebox.showinfo(title="Successful",message="Password saved!")
+                messagebox.showinfo(title="Successful", message="Password saved!")
+
+
+# ----------------------------- Search website ---------------------------- #
+def search_website():
+    website = website_entry.get()
+    try:
+        with open("data.json", mode="r") as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showerror(title="Error", message="There is no file with saved passwords")
+    else:
+        if website in data:
+            email = data[website]['email']
+            password = data[website]['password']
+            messagebox.showinfo(title=website,message=f"email: {email}\npassword: {password}")
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -65,23 +97,26 @@ canvas.grid(row=0, column=1)
 # TODO 1. Fix password objects fitting
 website_label = Label(text="Website:")
 website_label.grid(row=1, column=0)
-website_entry = Entry(width=35)
-website_entry.grid(row=1, column=1, columnspan=2)
+website_entry = Entry(width=21)
+website_entry.grid(row=1, column=1)
 website_entry.focus()
+
+website_search = Button(text="Search", command=search_website,width = 13)
+website_search.grid(row=1,column=2)
 
 email_label = Label(text="Email/Username:")
 email_label.grid(row=2, column=0)
-email_entry = Entry(width=35)
+email_entry = Entry(width=36)
 email_entry.grid(row=2, column=1, columnspan=2)
 
 password_label = Label(text="Password:")
 password_label.grid(row=3, column=0)
-password_entry = Entry(width=17)
+password_entry = Entry(width=21)
 password_entry.grid(row=3, column=1)
 generate_password_button = Button(text="Generate password", command=generate_password)
 generate_password_button.grid(row=3, column=2)
 
-add_button = Button(text="Add", width=30, command=save_password)
+add_button = Button(text="Add", width=36, command=save_password)
 add_button.grid(row=4, column=1, columnspan=2)
 
 window.mainloop()
