@@ -8,8 +8,8 @@ with open("quotes.txt") as quote_data:
     quotelist = quote_data.read().splitlines()
 print(quotelist)
 
-email = "1000tonic@gmail.com"
-password = "9S&ljY8kqgFN$%"
+email = ""
+password = ""
 
 if date.weekday() == 0:
     with smtplib.SMTP("smtp.gmail.com") as connection:
